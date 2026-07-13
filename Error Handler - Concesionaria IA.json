@@ -1,0 +1,215 @@
+{
+  "name": "Error Handler - Concesionaria IA",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "01b49723-d157-4bfe-a661-4ea35610a662",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "app0hPWaSmILUkCcP",
+          "mode": "list",
+          "cachedResultName": "Compra / venta",
+          "cachedResultUrl": "https://airtable.com/app0hPWaSmILUkCcP"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl0VYewX3514s9GO",
+          "mode": "list",
+          "cachedResultName": "Errores Logs",
+          "cachedResultUrl": "https://airtable.com/app0hPWaSmILUkCcP/tbl0VYewX3514s9GO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Error": "=Error en {{$json[\"workflow\"][\"name\"]}} - {{$json[\"execution\"][\"lastNodeExecuted\"]}}",
+            "Mensaje de error": "={{$json[\"execution\"][\"error\"][\"message\"]}}",
+            "Nodo del error": "={{$json[\"execution\"][\"lastNodeExecuted\"]}}",
+            "Estado error": "Pendiente revisión",
+            "Fecha": "={{$now}}",
+            "Acción tomada": "El flujo se detuvo automáticamente. No se contactó al cliente final. Se registró el error para revisión humana."
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Error",
+              "displayName": "Error",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Lead relacionado",
+              "displayName": "Lead relacionado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Nodo del error",
+              "displayName": "Nodo del error",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Mensaje de error",
+              "displayName": "Mensaje de error",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Estado error",
+              "displayName": "Estado error",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Pendiente revisión",
+                  "value": "Pendiente revisión"
+                },
+                {
+                  "name": "Resuelto",
+                  "value": "Resuelto"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Acción tomada",
+              "displayName": "Acción tomada",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "a2e05489-c120-4b34-bb1b-720085d7cce3",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "TJEnhKYjATsZJUBv",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "borgiavalen@gmail.com",
+        "subject": "Error en flujo Concesionaria IA",
+        "message": "=Hola,  Se detectó un error en el flujo de automatización de leads.  Workflow: {{$json[\"workflow\"][\"name\"]}}  Nodo con error: {{$json[\"execution\"][\"lastNodeExecuted\"]}}  Mensaje de error: {{$json[\"execution\"][\"error\"][\"message\"]}}  URL de ejecución: {{$json[\"execution\"][\"url\"]}}  Acción tomada: El error fue registrado en Airtable en la tabla Errores Logs. No se contactó al cliente final.  Revisar ejecución en n8n.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "b3e53f58-a232-4eec-9347-0a5ea22ffb8d",
+      "name": "Send a message",
+      "webhookId": "f16a30e3-681b-4ec1-a694-a708fcd66dbb",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "rZ5oPcVZWpwqVB01",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a record": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "02ac4a9f-3c05-4699-9699-b6a35877afe3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "65ed65753403d450630b66dce69d15a7e6a8deb29b3d2d344a57d15bf937f0f9"
+  },
+  "nodeGroups": [],
+  "id": "cQtu86srLoxmcIXn",
+  "tags": []
+}
