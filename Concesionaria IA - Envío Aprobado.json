@@ -1,0 +1,767 @@
+{
+  "name": "Concesionaria IA - Envío Aprobado",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        112,
+        0
+      ],
+      "id": "f9a0960d-f52f-413c-8d88-35dcba5ce49f",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app0hPWaSmILUkCcP",
+          "mode": "list",
+          "cachedResultName": "Compra / venta",
+          "cachedResultUrl": "https://airtable.com/app0hPWaSmILUkCcP"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblVqOS57c3oWPKIT",
+          "mode": "list",
+          "cachedResultName": "Consultas Leads",
+          "cachedResultUrl": "https://airtable.com/app0hPWaSmILUkCcP/tblVqOS57c3oWPKIT"
+        },
+        "returnAll": false,
+        "limit": 1,
+        "options": {
+          "view": {
+            "__rl": true,
+            "value": "viwJ6I3Bmcl8y5JGr",
+            "mode": "list",
+            "cachedResultName": "Leads pendientes IA",
+            "cachedResultUrl": "https://airtable.com/app0hPWaSmILUkCcP/tblVqOS57c3oWPKIT/viwJ6I3Bmcl8y5JGr"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        320,
+        0
+      ],
+      "id": "7fa23288-a27d-402d-9f23-dd234bca0889",
+      "name": "Search records",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "TJEnhKYjATsZJUBv",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Sos un asistente comercial de una concesionaria.\n\nTu tarea es analizar un lead recibido desde un formulario de Airtable y clasificarlo en uno de estos escenarios:\n\n1. Compra: la persona quiere comprar un vehículo.\n2. Permuta: la persona quiere entregar su vehículo como parte de pago y comprar otro.\n3. Venta: la persona quiere venderle su vehículo a la concesionaria.\n4. Otro: no corresponde a una operación comercial válida.\n\nTenés acceso a una herramienta para consultar el stock disponible de vehículos en Airtable.\n\nUsá la herramienta de stock únicamente si el escenario es Compra o Permuta.\n\nSi encontrás un vehículo compatible con el lead, podés mencionarlo en el resumen IA.\nSi no encontrás una coincidencia exacta o razonablemente compatible, indicá que requiere revisión humana.\nNo inventes vehículos que no estén en el stock.\nNo confirmes disponibilidad final ni precio final.\n\nDatos del lead:\n\nLead: {{$json[\"fields\"][\"Lead\"]}}\nNombre: {{$json[\"fields\"][\"Nombre\"]}}\nWhatsApp: {{$json[\"fields\"][\"WhatsApp\"]}}\nMensaje original: {{$json[\"fields\"][\"Mensaje original\"]}}\nCanal de entrada: {{$json[\"fields\"][\"Canal de entrada\"]}}\nPresupuesto máximo: {{$json[\"fields\"][\"Presupuesto máximo\"]}}\nMoneda: {{$json[\"fields\"][\"Moneda\"]}}\nTipo de vehículo: {{$json[\"fields\"][\"Tipo de vehículo\"]}}\nTransmisión preferida: {{$json[\"fields\"][\"Transmisión preferida\"]}}\nForma de pago: {{$json[\"fields\"][\"Forma de pago\"]}}\nTiene vehículo para permutar/vender: {{$json[\"fields\"][\"Tiene vehículo para permutar/vender\"]}}\nVehículo ofrecido: {{$json[\"fields\"][\"Vehículo ofrecido\"]}}\n\nDevolvé únicamente JSON válido, sin explicación adicional, sin markdown y sin texto antes o después.\n\nFormato obligatorio:\n\n{\n  \"escenario\": \"Compra / Permuta / Venta / Otro\",\n  \"intencion\": \"Consulta / Solicitud de precio / Reserva / Permuta / Financiacion / Venta / Reclamo / Otro\",\n  \"nivel_interes\": \"Frio / Tibio / Caliente / VIP\",\n  \"datos_completos\": true,\n  \"datos_faltantes\": [],\n  \"marca_interes\": \"\",\n  \"modelo_interes\": \"\",\n  \"presupuesto_maximo\": \"\",\n  \"moneda\": \"\",\n  \"tipo_vehiculo\": \"\",\n  \"transmision_preferida\": \"\",\n  \"forma_pago\": \"\",\n  \"vehiculo_ofrecido\": {\n    \"marca\": \"\",\n    \"modelo\": \"\",\n    \"anio\": \"\",\n    \"kilometraje\": \"\",\n    \"precio_pretendido\": \"\",\n    \"estado_general\": \"\",\n    \"situacion_documental\": \"\",\n    \"observaciones\": \"\"\n  },\n  \"vehiculo_sugerido_stock\": {\n    \"marca\": \"\",\n    \"modelo\": \"\",\n    \"anio\": \"\",\n    \"precio\": \"\",\n    \"motivo_sugerencia\": \"\"\n  },\n  \"resumen_ia\": \"\",\n  \"respuesta_sugerida\": \"\"\n}\n\nReglas obligatorias:\n\n- Siempre completá el campo \"escenario\".\n- Siempre completá el campo \"intencion\".\n- Siempre completá el campo \"nivel_interes\".\n- Siempre completá el campo \"respuesta_sugerida\".\n- No inventes datos que el cliente no dio.\n- No inventes vehículos del stock.\n- Si la persona quiere comprar y además ofrece un vehículo como parte de pago, el escenario debe ser \"Permuta\".\n- Si la persona solo quiere vender su vehículo a la concesionaria, el escenario debe ser \"Venta\".\n- Si la persona solo quiere comprar un vehículo, el escenario debe ser \"Compra\".\n- Si el mensaje no corresponde a compra, permuta o venta, el escenario debe ser \"Otro\".\n\nReglas para datos completos:\n\n- Si datos_faltantes tiene al menos un elemento, datos_completos debe ser false.\n- No marques datos_completos como true si hay campos importantes vacíos.\n- Para Compra, los datos mínimos son: modelo o tipo de vehículo buscado, presupuesto máximo, moneda, forma de pago y preferencia principal.\n- Para Permuta, los datos mínimos son: vehículo buscado, presupuesto o rango, forma de pago y datos del vehículo ofrecido.\n- Para Venta, los datos mínimos son: marca, modelo, año, kilometraje, estado general, precio pretendido y situación documental.\n- Para una permuta, los datos mínimos del vehículo ofrecido son: marca, modelo, año, kilometraje, estado general, precio pretendido y situación documental.\n- Si falta cualquiera de esos datos, agregalo en \"datos_faltantes\".\n\nReglas de clasificación de interés:\n\n- Usá \"VIP\" si el cliente tiene presupuesto alto, datos completos y clara intención de avanzar.\n- Usá \"Caliente\" si el cliente tiene intención clara de compra, permuta o venta, aunque falten algunos datos.\n- Usá \"Tibio\" si el cliente consulta de forma general pero muestra algún interés concreto.\n- Usá \"Frio\" si el mensaje es muy ambiguo o poco accionable.\n\nReglas para la respuesta sugerida:\n\n- La respuesta_sugerida debe ser un mensaje listo para que un vendedor revise antes de enviarlo al cliente.\n- Debe ser breve, amable y comercial.\n- No debe decir que la operación está aprobada.\n- No debe confirmar disponibilidad final del vehículo.\n- No debe confirmar precio final.\n- Si faltan datos, la respuesta debe pedirlos de forma clara.\n- Si el escenario es Permuta, pedí datos faltantes del vehículo ofrecido.\n- Si el escenario es Venta, pedí datos faltantes para evaluar el vehículo.\n- Si el escenario es Compra, pedí datos faltantes para recomendar opciones.\n\nEjemplo de criterio:\n\nSi el lead dice:\n\"Hola busco un Golf GTI 2018, tengo un Gol Power 2007 base 1.6 para entregar\"\n\nDebe clasificarse como:\n- escenario: \"Permuta\"\n- intencion: \"Permuta\"\n- nivel_interes: \"Caliente\"\n- datos_completos: false\n- datos_faltantes: incluir kilometraje, estado general, precio pretendido y situación documental del vehículo ofrecido.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        560,
+        0
+      ],
+      "id": "7bab0b97-6853-45e7-a475-e406077050ae",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-3.5-turbo",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        560,
+        160
+      ],
+      "id": "2e7621ba-6e87-43d8-b456-85730eeaf414",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "mg8LOUs6Jt3k2oRO",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app0hPWaSmILUkCcP",
+          "mode": "list",
+          "cachedResultName": "Compra / venta",
+          "cachedResultUrl": "https://airtable.com/app0hPWaSmILUkCcP"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbltqOn8dHOZqNVgD",
+          "mode": "list",
+          "cachedResultName": "Vehículos Stock",
+          "cachedResultUrl": "https://airtable.com/app0hPWaSmILUkCcP/tbltqOn8dHOZqNVgD"
+        },
+        "returnAll": false,
+        "limit": 5,
+        "options": {
+          "view": {
+            "__rl": true,
+            "value": "viwP6g3fdErzZD9iH",
+            "mode": "list",
+            "cachedResultName": "Stock disponible",
+            "cachedResultUrl": "https://airtable.com/app0hPWaSmILUkCcP/tbltqOn8dHOZqNVgD/viwP6g3fdErzZD9iH"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        224
+      ],
+      "id": "17a13dc9-50a1-4824-b0af-e1172f881f22",
+      "name": "Search records in Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "TJEnhKYjATsZJUBv",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{$json[\"fields\"][\"WhatsApp\"]}}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        656,
+        160
+      ],
+      "id": "2596cb2a-ee0a-435e-9935-1c6254285a93",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app0hPWaSmILUkCcP",
+          "mode": "list",
+          "cachedResultName": "Compra / venta",
+          "cachedResultUrl": "https://airtable.com/app0hPWaSmILUkCcP"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblVqOS57c3oWPKIT",
+          "mode": "list",
+          "cachedResultName": "Consultas Leads",
+          "cachedResultUrl": "https://airtable.com/app0hPWaSmILUkCcP/tblVqOS57c3oWPKIT"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{$node[\"Search records\"].json[\"id\"]}}",
+            "Estado": "Pendiente aprobación humana",
+            "Respuesta IA": "={{ JSON.parse($json[\"output\"]).resumen_ia + \"\\n\\nRespuesta sugerida:\\n\" + JSON.parse($json[\"output\"]).respuesta_sugerida }}",
+            "Datos faltantes": "={{ JSON.parse($json[\"output\"]).datos_faltantes.join(\", \") }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Lead",
+              "displayName": "Lead",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Cliente",
+              "displayName": "Cliente",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "WhatsApp",
+              "displayName": "WhatsApp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Mensaje original",
+              "displayName": "Mensaje original",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Canal de entrada",
+              "displayName": "Canal de entrada",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "WhatsApp",
+                  "value": "WhatsApp"
+                },
+                {
+                  "name": "Formulario web",
+                  "value": "Formulario web"
+                },
+                {
+                  "name": "Gmail",
+                  "value": "Gmail"
+                },
+                {
+                  "name": "Formulario Airtable",
+                  "value": "Formulario Airtable"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Escenario",
+              "displayName": "Escenario",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "options": [
+                {
+                  "name": "Compra",
+                  "value": "Compra"
+                },
+                {
+                  "name": "Permuta",
+                  "value": "Permuta"
+                },
+                {
+                  "name": "Venta",
+                  "value": "Venta"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Tipo de búsqueda",
+              "displayName": "Tipo de búsqueda",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Marca de interés",
+              "displayName": "Marca de interés",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Modelo de interés",
+              "displayName": "Modelo de interés",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Presupuesto mínimo",
+              "displayName": "Presupuesto mínimo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Presupuesto máximo",
+              "displayName": "Presupuesto máximo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Moneda",
+              "displayName": "Moneda",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "USD",
+                  "value": "USD"
+                },
+                {
+                  "name": "ARS",
+                  "value": "ARS"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Año mínimo",
+              "displayName": "Año mínimo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Tipo de vehículo",
+              "displayName": "Tipo de vehículo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Transmisión preferida",
+              "displayName": "Transmisión preferida",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Automática",
+                  "value": "Automática"
+                },
+                {
+                  "name": "No especificado",
+                  "value": "No especificado"
+                },
+                {
+                  "name": "Manual / Automática",
+                  "value": "Manual / Automática"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Forma de pago",
+              "displayName": "Forma de pago",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Tiene vehículo para permutar/vender",
+              "displayName": "Tiene vehículo para permutar/vender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "No",
+                  "value": "No"
+                },
+                {
+                  "name": "Sí",
+                  "value": "Sí"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Vehículo ofrecido",
+              "displayName": "Vehículo ofrecido",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Datos completos",
+              "displayName": "Datos completos",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "No",
+                  "value": "No"
+                },
+                {
+                  "name": "Sí",
+                  "value": "Sí"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Datos faltantes",
+              "displayName": "Datos faltantes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Intención",
+              "displayName": "Intención",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Nivel de interés",
+              "displayName": "Nivel de interés",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Caliente",
+                  "value": "Caliente"
+                },
+                {
+                  "name": "VIP",
+                  "value": "VIP"
+                },
+                {
+                  "name": "Tibio",
+                  "value": "Tibio"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Datos incompletos",
+                  "value": "Datos incompletos"
+                },
+                {
+                  "name": "Pendiente aprobación humana",
+                  "value": "Pendiente aprobación humana"
+                },
+                {
+                  "name": "Procesado por IA",
+                  "value": "Procesado por IA"
+                },
+                {
+                  "name": "Pendiente lectura IA",
+                  "value": "Pendiente lectura IA"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Respuesta IA",
+              "displayName": "Respuesta IA",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Fecha creación",
+              "displayName": "Fecha creación",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Vehículos Ofrecidos",
+              "displayName": "Vehículos Ofrecidos",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Propuestas",
+              "displayName": "Propuestas",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Errores Logs",
+              "displayName": "Errores Logs",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Field 31",
+              "displayName": "Field 31",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Field 32",
+              "displayName": "Field 32",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        912,
+        0
+      ],
+      "id": "50911c30-d5e3-4919-9f78-ce566a357492",
+      "name": "Update record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "TJEnhKYjATsZJUBv",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records in Airtable": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Update record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "cQtu86srLoxmcIXn",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "0da226f1-7283-42e8-bcf9-fd2f0c731e20",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "65ed65753403d450630b66dce69d15a7e6a8deb29b3d2d344a57d15bf937f0f9"
+  },
+  "nodeGroups": [],
+  "id": "Uv5vqYBtqsCX9HP7",
+  "tags": []
+}
