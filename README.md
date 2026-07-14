@@ -27,6 +27,7 @@ La IA debe detectar que se trata de una permuta, identificar datos faltantes y g
 ## Herramientas utilizadas
 
 - **Airtable:** base de datos dinámica y memoria operativa del sistema.
+https://airtable.com/invite/l?inviteId=invPM1WBdbnwubNUp&inviteToken=45578b5f99eb52b9f4ee3585e58dfcd5ab0c9b47526e61a61830f082bd786fdf&utm_medium=email&utm_source=product_team&utm_content=transactional-alerts 
 - **Airtable Form:** canal de entrada de leads.
 - **n8n:** orquestador del flujo.
 - **AI Agent:** motor de razonamiento.
